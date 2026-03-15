@@ -1,0 +1,9 @@
+{
+  "_comment": "Place .json model descriptors here. Each file describes a 3D object with geometry, materials, and metadata.",
+  "_example": {
+    "name": "house01",
+    "type": "interior",
+    "entryPoints": [{ "x": 0, "y": 0, "z": 0 }],
+    "bounds": { "width": 20, "height": 12, "depth": 20 }
+  }
+}

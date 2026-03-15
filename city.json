@@ -1,0 +1,79 @@
+{
+  "_comment": "NYC Criminal — city scene config. Edit zones/colors/counts here without touching engine.js",
+
+  "grid": {
+    "blockSize": 110,
+    "roadWidth": 24,
+    "halfBlocks": 7,
+    "sidewalkWidth": 4
+  },
+
+  "zones": [
+    {
+      "name": "midtown",
+      "maxDist": 2.5,
+      "styles": ["glass", "deco", "modern"],
+      "styleWeights": [0.5, 0.3, 0.2],
+      "heightMin": 80,
+      "heightMax": 280
+    },
+    {
+      "name": "midring",
+      "maxDist": 4.5,
+      "styles": ["glass", "modern", "brutalist"],
+      "styleWeights": [0.35, 0.32, 0.33],
+      "heightMin": 30,
+      "heightMax": 110
+    },
+    {
+      "name": "outer",
+      "maxDist": 999,
+      "styles": ["brownstone", "modern", "brutalist"],
+      "styleWeights": [0.5, 0.25, 0.25],
+      "heightMin": 10,
+      "heightMax": 45
+    }
+  ],
+
+  "parks": {
+    "fixed": [[0,0],[1,0],[0,1],[1,1]],
+    "randomChance": 0.055,
+    "centralParkMaxDist": 1.5
+  },
+
+  "buildingColors": [
+    "0x7A8E9A","0x9AA4B0","0x6A7A90","0xAA9B82",
+    "0x8899A0","0xC0B8A8","0x4E6070","0x889890",
+    "0xCC9966","0x7A8899","0x99AABB","0x88776A",
+    "0x5A6E7A","0xB8A898","0x6680A0","0x445566"
+  ],
+
+  "carColors": [
+    "0xCC2211","0x1144CC","0x228833","0xDD8800",
+    "0x882288","0x118888","0xCCCC22","0x222222",
+    "0xEEEEEE","0x774422","0xFF6644","0x004488"
+  ],
+
+  "spawnCounts": {
+    "trafficCars": 14,
+    "pedestrians": 22,
+    "pickups": 32,
+    "clouds": 26
+  },
+
+  "pickupTypes": ["money","health","armor","ammo","nitro"],
+
+  "radios": [
+    { "name": "BOUNCE FM", "genre": "Funk Soul" },
+    { "name": "FLASH FM",  "genre": "80s Pop"   },
+    { "name": "V-ROCK",    "genre": "Hard Rock"  },
+    { "name": "K-JAH",     "genre": "Reggae"     },
+    { "name": "RADIO X",   "genre": "Grunge"     },
+    { "name": "MSX FM",    "genre": "D&B"        }
+  ],
+
+  "scenes": {
+    "available": ["city"],
+    "interiors": []
+  }
+}

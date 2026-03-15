@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NYC CRIMINAL — Multiplayer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#000;font-family:'Helvetica Neue',Arial,sans-serif;user-select:none}
+#c{display:block}
+
+/* ── NAME ENTRY ── */
+#namescreen{position:fixed;inset:0;background:#080A0E;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:990}
+#namescreen h1{font-size:68px;font-weight:100;letter-spacing:18px;color:#F5C518;text-shadow:0 0 50px rgba(245,197,24,.25);margin-bottom:6px}
+#namescreen .tagline{color:#333;font-size:11px;letter-spacing:5px;margin-bottom:48px}
+.name-row{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+#name-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;padding:12px 20px;font-size:16px;border-radius:8px;outline:none;width:240px;letter-spacing:1px;text-align:center}
+#name-input:focus{border-color:rgba(245,197,24,.5)}
+#play-btn{background:#F5C518;color:#000;border:none;padding:12px 28px;font-size:14px;font-weight:700;letter-spacing:2px;border-radius:8px;cursor:pointer;transition:transform .1s}
+#play-btn:hover{transform:scale(1.04)}
+.color-row{display:flex;gap:10px;margin-bottom:32px}
+.col-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s,transform .1s}
+.col-swatch.active{border-color:#F5C518;transform:scale(1.18)}
+.key-hint{color:#2A2A2A;font-size:9px;letter-spacing:2px;line-height:2.4;text-align:center}
+.key-hint b{color:#444}
+.ws-status{margin-top:20px;font-size:9px;letter-spacing:2px}
+.ws-status.ok{color:#4DFF91}.ws-status.err{color:#FF4444}.ws-status.pending{color:#888}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:#080A0E;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:980}
+#loading h2{color:#888;font-size:13px;letter-spacing:5px;font-weight:100}
+#pb-track{width:300px;height:2px;background:#111;margin-top:24px}
+#pb{height:100%;background:linear-gradient(90deg,#F5C518,#FF6B2B);transition:width .04s}
+
+/* ── HUD ── */
+#hud{position:fixed;inset:0;pointer-events:none}
+#hit-flash{position:fixed;inset:0;background:rgba(255,30,0,0);pointer-events:none;transition:background .08s}
+#money{position:fixed;top:18px;left:24px;font-size:28px;font-weight:100;letter-spacing:3px;color:#4DFF91;text-shadow:0 0 20px rgba(77,255,145,.25)}
+#wanted{position:fixed;top:56px;left:24px;display:flex;gap:5px}
+.star{font-size:16px;color:#1A1A1A;transition:color .15s}
+.star.on{color:#F5C518;text-shadow:0 0 8px rgba(245,197,24,.6)}
+.star.flash{color:#FF4444}
+#badge{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.1);color:#bbb;padding:7px 22px;border-radius:22px;font-size:11px;letter-spacing:2px}
+#player-count{position:fixed;top:50px;left:50%;transform:translateX(-50%);color:#333;font-size:9px;letter-spacing:2px}
+#alert{position:fixed;top:54px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#FF6644;padding:7px 22px;border-radius:18px;font-size:10px;letter-spacing:2px;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none}
+/* minimap */
+#minimap{position:fixed;bottom:24px;left:24px;width:148px;height:148px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);box-shadow:0 4px 18px rgba(0,0,0,.5)}
+#mm{display:block}
+/* stats bars */
+#statbars{position:fixed;bottom:184px;left:24px;display:flex;flex-direction:column;gap:7px}
+.srow{display:flex;align-items:center;gap:8px}
+.slbl{color:#444;font-size:8px;letter-spacing:2px;width:44px}
+.sbg{width:138px;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.sbar{height:100%;border-radius:3px;transition:width .2s}
+#hp-bar{background:linear-gradient(90deg,#FF4444,#FF8844)}
+#arm-bar{background:linear-gradient(90deg,#4488FF,#88AAFF);width:0}
+/* speedo */
+#speedo{position:fixed;bottom:24px;right:24px;width:104px;height:104px;border-radius:50%;background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.1);display:none;flex-direction:column;align-items:center;justify-content:center}
+#spd{font-size:32px;font-weight:bold;color:#F5C518;line-height:1}
+#spu{font-size:8px;color:#555;letter-spacing:2px;margin-top:2px}
+#gearl{font-size:11px;color:#555;margin-top:2px;letter-spacing:1px}
+/* vehicle hp */
+#vhp{position:fixed;bottom:140px;right:24px;background:rgba(0,0,0,.7);padding:7px 13px;border-radius:8px;display:none}
+#vhp-lbl{color:#333;font-size:8px;letter-spacing:2px;margin-bottom:4px}
+#vhp-bg{width:96px;height:4px;background:rgba(255,255,255,.07);border-radius:2px}
+#vhp-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,#44FF88,#AAFFCC);transition:width .2s}
+/* radio */
+#radio{position:fixed;bottom:24px;right:148px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.06);padding:8px 14px;border-radius:8px;min-width:140px}
+#rname{color:#F5C518;font-size:12px;letter-spacing:2px}
+#rgenre{color:#444;font-size:8px;margin-top:2px;letter-spacing:1px}
+#rnote{color:#555;font-size:8px;margin-top:2px;letter-spacing:1px}
+/* weapon */
+#weap{position:fixed;bottom:148px;right:24px;background:rgba(0,0,0,.7);padding:7px 13px;border-radius:8px;display:none;text-align:right}
+#wname{color:#FF8844;font-size:12px;letter-spacing:2px}
+#wammo{color:#555;font-size:9px;margin-top:3px;letter-spacing:1px}
+/* prompts */
+#enter-prompt{position:fixed;top:56%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.85);color:#F5C518;padding:10px 22px;border-radius:10px;font-size:11px;letter-spacing:2px;display:none}
+#xhair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;color:rgba(255,255,255,.7);display:none;pointer-events:none;line-height:1;letter-spacing:0}
+/* hint */
+#hint{position:fixed;bottom:182px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.18);font-size:8px;letter-spacing:1.5px;white-space:nowrap}
+/* mission */
+#mission{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);border:1px solid rgba(245,197,24,.18);color:#F5C518;padding:10px 26px;border-radius:10px;font-size:10px;letter-spacing:2px;text-align:center;display:none}
+#mtitle{font-size:13px;letter-spacing:3px}
+#mdetail{color:#555;margin-top:4px;font-size:8px}
+/* time */
+#tod{position:fixed;top:18px;right:24px;color:#444;font-size:10px;letter-spacing:2px}
+/* event feed */
+#feed{position:fixed;top:108px;right:24px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;max-width:230px}
+.fi{background:rgba(0,0,0,.7);color:#ccc;padding:4px 12px;border-radius:6px;font-size:9px;letter-spacing:1px;animation:fadeOut 3.5s forwards}
+@keyframes fadeOut{0%{opacity:1}70%{opacity:1}100%{opacity:0}}
+/* cam mode */
+#cammode{position:fixed;bottom:182px;right:24px;color:rgba(255,255,255,.2);font-size:9px;letter-spacing:2px}
+/* wasted overlay */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;pointer-events:all}
+#overlay h2{font-size:70px;font-weight:100;letter-spacing:14px}
+#overlay p{margin-top:12px;color:#333;letter-spacing:4px;font-size:10px}
+
+/* ── NAMETAGS ── */
+#nametags{position:fixed;inset:0;pointer-events:none}
+.ntag{position:absolute;transform:translate(-50%,-100%);background:rgba(0,0,0,.75);color:#fff;font-size:10px;letter-spacing:1px;padding:3px 9px;border-radius:12px;white-space:nowrap;pointer-events:none;text-shadow:none}
+.ntag.police{color:#88BBFF}
+
+/* ── LEADERBOARD ── */
+#lb-panel{position:fixed;top:50%;right:24px;transform:translateY(-50%);background:rgba(0,0,0,.9);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px;min-width:200px;display:none;z-index:50;pointer-events:all}
+#lb-panel h3{color:#F5C518;font-size:11px;letter-spacing:3px;margin-bottom:14px;text-align:center}
+.lb-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.lb-name{color:#ccc;font-size:9px;letter-spacing:1px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-val{color:#4DFF91;font-size:9px;letter-spacing:1px}
+.lb-rank{color:#555;font-size:8px;width:16px}
+#lb-hint{color:#333;font-size:8px;letter-spacing:1px;margin-top:10px;text-align:center}
+
+/* ── CHAT ── */
+#chat-area{position:fixed;bottom:190px;left:184px;display:flex;flex-direction:column;gap:4px;max-width:280px;pointer-events:none}
+.chat-msg{background:rgba(0,0,0,.72);color:#ddd;font-size:10px;padding:4px 12px;border-radius:12px;letter-spacing:.5px;animation:fadeOut 7s forwards}
+#chat-box{position:fixed;bottom:178px;left:24px;background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 14px;font-size:11px;border-radius:8px;outline:none;width:260px;letter-spacing:1px;display:none;z-index:100;pointer-events:all}
+#chat-label{position:fixed;bottom:196px;left:24px;color:#555;font-size:8px;letter-spacing:2px;display:none}
+
+/* ── WS INDICATOR ── */
+#ws-dot{position:fixed;bottom:24px;left:184px;width:8px;height:8px;border-radius:50%;background:#FF4444;box-shadow:0 0 6px rgba(255,68,68,.5)}
+#ws-dot.ok{background:#4DFF91;box-shadow:0 0 6px rgba(77,255,145,.5)}
+#ws-dot.connecting{background:#F5C518;box-shadow:0 0 6px rgba(245,197,24,.5)}
+</style>
+</head>
+<body>
+
+<!-- ── NAME ENTRY ── -->
+<div id="namescreen">
+  <h1>NYC CRIMINAL</h1>
+  <div class="tagline">MULTIPLAYER</div>
+  <div class="name-row">
+    <input id="name-input" placeholder="ENTER YOUR NAME" maxlength="18" spellcheck="false" autocomplete="off">
+    <button id="play-btn">PLAY</button>
+  </div>
+  <div style="color:#333;font-size:9px;letter-spacing:2px;margin-bottom:10px">PICK YOUR CAR COLOR</div>
+  <div class="color-row" id="color-row"></div>
+  <div class="key-hint">
+    <b>WASD</b> Drive/Walk &nbsp;·&nbsp; <b>E</b> Enter/Exit Car &nbsp;·&nbsp; <b>SPACE</b> Brake &nbsp;·&nbsp; <b>N</b> Nitro<br>
+    <b>H</b> Horn &nbsp;·&nbsp; <b>R</b> Radio &nbsp;·&nbsp; <b>V</b> Camera &nbsp;·&nbsp; <b>SHIFT</b> Sprint<br>
+    <b>CLICK</b> Shoot (on foot) &nbsp;·&nbsp; <b>TAB</b> Leaderboard &nbsp;·&nbsp; <b>T</b> Chat
+  </div>
+  <div class="ws-status pending" id="ws-status">● Connecting to server…</div>
+</div>
+
+<!-- ── LOADING ── -->
+<div id="loading">
+  <h2>GENERATING NEW YORK CITY</h2>
+  <div id="pb-track"><div id="pb"></div></div>
+</div>
+
+<!-- ── HUD ── -->
+<div id="hud">
+  <div id="hit-flash"></div>
+  <div id="money">$500</div>
+  <div id="wanted"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+  <div id="badge">🚗 DRIVING</div>
+  <div id="player-count">1 PLAYER ONLINE</div>
+  <div id="alert"></div>
+  <div id="minimap"><canvas id="mm" width="148" height="148"></canvas></div>
+  <div id="statbars">
+    <div class="srow"><span class="slbl">HEALTH</span><div class="sbg"><div class="sbar" id="hp-bar" style="width:100%"></div></div></div>
+    <div class="srow"><span class="slbl">ARMOR</span><div class="sbg"><div class="sbar" id="arm-bar"></div></div></div>
+  </div>
+  <div id="speedo"><span id="spd">0</span><span id="spu">MPH</span><span id="gearl">N</span></div>
+  <div id="vhp"><div id="vhp-lbl">VEHICLE</div><div id="vhp-bg"><div id="vhp-bar" style="width:100%"></div></div></div>
+  <div id="radio"><div id="rname">BOUNCE FM</div><div id="rgenre">♪ Funk Soul</div><div id="rnote">On Air</div></div>
+  <div id="weap"><div id="wname">PISTOL</div><div id="wammo">30 / ∞</div></div>
+  <div id="enter-prompt">[E] Enter Vehicle</div>
+  <div id="xhair">+</div>
+  <div id="hint">WASD·Drive &nbsp;|&nbsp; E·Exit &nbsp;|&nbsp; SPACE·Brake &nbsp;|&nbsp; N·Nitro &nbsp;|&nbsp; H·Horn &nbsp;|&nbsp; TAB·Scores &nbsp;|&nbsp; T·Chat</div>
+  <div id="mission"><div id="mtitle">DELIVERY</div><div id="mdetail">→ Blue marker</div></div>
+  <div id="tod">12:00</div>
+  <div id="feed"></div>
+  <div id="cammode">CAM: CHASE</div>
+  <div id="ws-dot"></div>
+</div>
+<div id="nametags"></div>
+<div id="chat-label">CHAT (Enter=send, Esc=cancel)</div>
+<input id="chat-box" placeholder="Say something…" maxlength="100" spellcheck="false" autocomplete="off">
+<div id="chat-area"></div>
+<div id="lb-panel">
+  <h3>🏆 LEADERBOARD</h3>
+  <div id="lb-list"></div>
+  <div id="lb-hint">TAB to close</div>
+</div>
+<div id="overlay"><h2 id="overlay-text">WASTED</h2><p id="overlay-sub">PRESS R TO RESPAWN</p></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="engine.js"></script>
+</body>
+</html>
